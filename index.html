@@ -862,7 +862,24 @@
             .login-admin-btn span { display:none; }
             .theme-toggle-btn { width:42px; height:42px; flex:0 0 42px; }
         }
-    </style>
+    
+/* ICON PICKER */
+.icon-picker{margin-top:10px;border:1px solid var(--border-color);border-radius:14px;padding:14px;background:rgba(255,255,255,.025)}
+.icon-picker-title{font-weight:800;margin-bottom:10px;color:var(--text-primary)}
+.icon-picker-tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.icon-picker-tab{border:1px solid var(--border-color);background:transparent;color:var(--text-primary);padding:7px 12px;border-radius:9px;cursor:pointer;font-size:12px}
+.icon-picker-tab.active{background:var(--accent-gold);color:#111;border-color:var(--accent-gold)}
+.icon-picker-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px;max-height:210px;overflow:auto;padding:2px}
+.icon-choice{min-height:52px;border:1px solid var(--border-color);border-radius:10px;background:rgba(255,255,255,.03);color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;transition:.15s}
+.icon-choice:hover,.icon-choice.selected{border-color:var(--accent-gold);background:rgba(212,163,115,.13);transform:translateY(-1px)}
+.icon-choice i{font-size:20px}.icon-choice .emoji{font-size:23px;line-height:1}.icon-choice small{font-size:8px;opacity:.72;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 3px}
+.icon-selected{display:flex;align-items:center;gap:10px;border:1px dashed var(--accent-gold);border-radius:10px;padding:9px;margin-bottom:12px}
+.icon-selected-preview{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(212,163,115,.12);font-size:24px}
+.account-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.account-actions .btn{font-size:12px}
+.user-table{width:100%;border-collapse:collapse}.user-table th,.user-table td{padding:8px;border-bottom:1px solid var(--border-color);text-align:left;font-size:12px}.user-table th{color:var(--accent-gold)}
+@media(max-width:700px){.icon-picker-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+</style>
 </head>
 <body>
 
@@ -978,6 +995,10 @@
                 <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
                     <i class="fa-solid fa-right-to-bracket"></i> Masuk Sekarang
                 </button>
+                <div class="account-actions">
+                    <button type="button" class="btn btn-outline" style="flex:1" onclick="openChangePasswordModal()"><i class="fa-solid fa-key"></i> Ganti Password</button>
+                    <button type="button" class="btn btn-outline" style="flex:1" onclick="openAddUserModal()"><i class="fa-solid fa-user-plus"></i> Tambah Admin</button>
+                </div>
             </form>
         </div>
     </div>
@@ -996,6 +1017,7 @@
                 <button class="btn btn-primary btn-sm" onclick="openAppFormModal(null)">
                     <i class="fa-solid fa-plus"></i> Tambah Link Aplikasi
                 </button>
+                <button class="btn btn-outline btn-sm" onclick="openUsersModal()"><i class="fa-solid fa-users-gear"></i> Kelola Admin</button>
             </div>
 
             <div style="overflow-x: auto;">
@@ -1057,9 +1079,21 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Kode FontAwesome Icon ATAU Emoji</label>
-                    <input type="text" id="form-app-icon" class="form-control" placeholder="fa-book-bookmark ATAU 📚" required>
-                    <small style="font-size:11px; color:var(--text-muted)">Contoh: <code>fa-laptop-code</code> atau emoji langsung <code>🚀</code></small>
+                    <label class="form-label">Ikon Aplikasi</label>
+                    <input type="hidden" id="form-app-icon" required>
+                    <div class="icon-picker">
+                        <div class="icon-selected">
+                            <div class="icon-selected-preview" id="icon-picker-preview"><i class="fa-solid fa-link"></i></div>
+                            <div><strong>Ikon terpilih</strong><div id="icon-picker-selected-name" style="font-size:11px;color:var(--text-muted)">fa-link</div></div>
+                        </div>
+                        <div class="icon-picker-tabs">
+                            <button type="button" class="icon-picker-tab active" id="tab-fa" onclick="switchIconPicker('fa')">FontAwesome</button>
+                            <button type="button" class="icon-picker-tab" id="tab-emoji" onclick="switchIconPicker('emoji')">Emoji</button>
+                        </div>
+                        <div class="icon-picker-grid" id="fontawesome-icon-grid"></div>
+                        <div class="icon-picker-grid" id="emoji-icon-grid" style="display:none"></div>
+                    </div>
+                    <small style="font-size:11px;color:var(--text-muted)">Klik ikon/emoji. Pilihan otomatis masuk ke data aplikasi.</small>
                 </div>
 
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
@@ -1071,6 +1105,49 @@
     </div>
 </div>
 
+
+<!-- MODAL GANTI PASSWORD -->
+<div class="modal-overlay" id="modal-change-password">
+ <div class="modal-card">
+  <div class="modal-header"><h3 class="modal-title"><i class="fa-solid fa-key"></i> Ganti Password</h3><button class="modal-close" onclick="closeModal('modal-change-password')">&times;</button></div>
+  <div class="modal-body">
+   <form onsubmit="handleChangePassword(event)">
+    <div class="form-group"><label class="form-label">Username</label><input id="cp-username" class="form-control" required></div>
+    <div class="form-group"><label class="form-label">Password Lama</label><input id="cp-old" type="password" class="form-control" required></div>
+    <div class="form-group"><label class="form-label">Password Baru</label><input id="cp-new" type="password" class="form-control" minlength="6" required></div>
+    <div class="form-group"><label class="form-label">Ulangi Password Baru</label><input id="cp-confirm" type="password" class="form-control" minlength="6" required></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center"><i class="fa-solid fa-floppy-disk"></i> Simpan Password</button>
+   </form>
+  </div>
+ </div>
+</div>
+
+<!-- MODAL TAMBAH ADMIN -->
+<div class="modal-overlay" id="modal-add-user">
+ <div class="modal-card">
+  <div class="modal-header"><h3 class="modal-title"><i class="fa-solid fa-user-plus"></i> Tambah Admin</h3><button class="modal-close" onclick="closeModal('modal-add-user')">&times;</button></div>
+  <div class="modal-body">
+   <form onsubmit="handleAddUser(event)">
+    <div class="form-group"><label class="form-label">Username Admin Baru</label><input id="au-username" class="form-control" required pattern="[A-Za-z0-9._-]+"></div>
+    <div class="form-group"><label class="form-label">Password</label><input id="au-password" type="password" class="form-control" minlength="6" required></div>
+    <div class="form-group"><label class="form-label">Ulangi Password</label><input id="au-confirm" type="password" class="form-control" minlength="6" required></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center"><i class="fa-solid fa-user-plus"></i> Buat Admin</button>
+   </form>
+  </div>
+ </div>
+</div>
+
+<!-- MODAL KELOLA ADMIN -->
+<div class="modal-overlay" id="modal-users">
+ <div class="modal-card" style="max-width:760px">
+  <div class="modal-header"><h3 class="modal-title"><i class="fa-solid fa-users-gear"></i> Kelola Admin</h3><button class="modal-close" onclick="closeModal('modal-users')">&times;</button></div>
+  <div class="modal-body">
+   <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-primary btn-sm" onclick="openAddUserModal()"><i class="fa-solid fa-user-plus"></i> Tambah Admin</button></div>
+   <div style="overflow:auto"><table class="user-table"><thead><tr><th>Username</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="users-tbody"></tbody></table></div>
+  </div>
+ </div>
+</div>
+
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
 
@@ -1079,7 +1156,7 @@
        KONFIGURASI DEPLOYMENT & SAKLAR UTAMA
        ========================================================================== */
     const IS_PREVIEW = false; // MODE PRODUKSI - GitHub Pages
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxBoQ7rIXPka3oiz3WFwAUBjTh0cQX5WVzKGdWknZxtikEHedLudaFXfQFtX0vNt2U7Aw/exec"; // PASTE URL WEB APP GAS DI SINI
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbw6EJSQIKAJWG9ZFVxev0x4DxEO7Z0tHCU65_uQTGdy3Ze2n_D1Wq0_NxlUDZWWDx68ig/exec"; // PASTE URL WEB APP GAS DI SINI
 
     /* ==========================================================================
        DATA DUMMY UNTUK PREVIEW MODE
@@ -1391,6 +1468,7 @@
                 isAdminLoggedIn = true;
                 localStorage.setItem("edu_portal_admin", "1");
                 if (res.token) localStorage.setItem("edu_portal_token", res.token);
+                if (res.user && res.user.username) localStorage.setItem("edu_portal_username", res.user.username);
                 updateAuthUI();
                 closeModal("modal-login");
                 document.getElementById("login-password").value = "";
@@ -1411,6 +1489,7 @@
         isAdminLoggedIn = false;
         localStorage.removeItem("edu_portal_admin");
         localStorage.removeItem("edu_portal_token");
+        localStorage.removeItem("edu_portal_username");
         updateAuthUI();
         closeModal("modal-admin");
         showToast("Anda telah keluar dari mode admin.", "info");
@@ -1474,6 +1553,7 @@
             document.getElementById("form-app-url").value = "";
             document.getElementById("form-app-icon").value = "fa-link";
         }
+        selectAppIcon(document.getElementById("form-app-icon").value || "fa-link");
         document.getElementById("modal-app-form").classList.add("active");
     }
 
@@ -1557,6 +1637,79 @@
             });
         }
     }
+
+
+    /* ================= ICON PICKER ================= */
+    const FONT_AWESOME_ICONS = [
+      'fa-link','fa-house','fa-graduation-cap','fa-school','fa-book','fa-book-open','fa-book-open-reader','fa-laptop','fa-laptop-code','fa-desktop','fa-server','fa-network-wired','fa-wifi','fa-globe','fa-earth-asia','fa-chalkboard-user','fa-users','fa-user','fa-user-tie','fa-user-graduate','fa-user-plus','fa-clipboard-user','fa-clipboard-check','fa-file','fa-file-lines','fa-folder','fa-folder-open','fa-calendar-days','fa-clock','fa-bell','fa-envelope','fa-comments','fa-message','fa-chart-column','fa-chart-line','fa-chart-pie','fa-database','fa-cloud','fa-mobile-screen','fa-tablet-screen-button','fa-camera','fa-image','fa-video','fa-music','fa-microphone','fa-print','fa-download','fa-upload','fa-share-nodes','fa-magnifying-glass','fa-gear','fa-gears','fa-shield-halved','fa-lock','fa-key','fa-wallet','fa-money-bill-wave','fa-cart-shopping','fa-id-card','fa-address-card','fa-heart','fa-star','fa-circle-check','fa-circle-info','fa-circle-question','fa-triangle-exclamation','fa-circle-xmark','fa-flask','fa-briefcase','fa-building','fa-bullhorn','fa-bookmark','fa-pen-to-square','fa-trash-can','fa-plus','fa-arrow-right','fa-arrow-up-right-from-square','fa-rocket','fa-lightbulb','fa-puzzle-piece','fa-calendar-check','fa-person-chalkboard','fa-school-circle-check'
+    ];
+    const EMOJIS = ['🏫','🎓','📚','📖','💻','🖥️','📱','🌐','📡','🛜','🖨️','📝','📋','📊','📈','📅','⏰','🔔','✉️','💬','👨‍🏫','👩‍🏫','👨‍🎓','👩‍🎓','👥','👤','🔐','🔑','⚙️','🛠️','💰','💳','🪙','🗂️','📁','📄','🖼️','📷','🎥','🎵','🎤','🚀','💡','⭐','❤️','✅','❓','⚠️','❌','📌','🔗','🏆','🎯','🧪','🛒'];
+
+    function renderIconPicker(){
+      const fa=document.getElementById('fontawesome-icon-grid'), em=document.getElementById('emoji-icon-grid');
+      if(!fa||!em) return;
+      fa.innerHTML=FONT_AWESOME_ICONS.map(x=>`<button type="button" class="icon-choice" data-icon="${x}" onclick="selectAppIcon('${x}')"><i class="fa-solid ${x}"></i><small>${x}</small></button>`).join('');
+      em.innerHTML=EMOJIS.map(x=>`<button type="button" class="icon-choice" data-icon="${x}" onclick="selectAppIcon(${JSON.stringify(x)})"><span class="emoji">${x}</span></button>`).join('');
+    }
+    function switchIconPicker(type){
+      document.getElementById('fontawesome-icon-grid').style.display=type==='fa'?'grid':'none';
+      document.getElementById('emoji-icon-grid').style.display=type==='emoji'?'grid':'none';
+      document.getElementById('tab-fa').classList.toggle('active',type==='fa');
+      document.getElementById('tab-emoji').classList.toggle('active',type==='emoji');
+    }
+    function selectAppIcon(icon){
+      document.getElementById('form-app-icon').value=icon;
+      document.getElementById('icon-picker-selected-name').textContent=icon;
+      const p=document.getElementById('icon-picker-preview');
+      p.innerHTML=String(icon).startsWith('fa-')?`<i class="fa-solid ${icon}"></i>`:`<span>${icon}</span>`;
+      document.querySelectorAll('.icon-choice').forEach(b=>b.classList.toggle('selected',b.dataset.icon===icon));
+    }
+    function initIconPicker(){renderIconPicker();}
+
+    /* ================= USER MANAGEMENT ================= */
+    function openChangePasswordModal(){
+      const logged=localStorage.getItem('edu_portal_token');
+      if(logged){ document.getElementById('cp-username').value=localStorage.getItem('edu_portal_username')||''; }
+      closeModal('modal-login'); document.getElementById('modal-change-password').classList.add('active');
+    }
+    function openAddUserModal(){
+      if(!isAdminLoggedIn){ closeModal('modal-login'); openLoginModal(); showToast('Login sebagai admin terlebih dahulu untuk menambah admin.','info'); return; }
+      document.getElementById('au-username').value=''; document.getElementById('au-password').value=''; document.getElementById('au-confirm').value='';
+      document.getElementById('modal-add-user').classList.add('active');
+    }
+    function handleChangePassword(e){
+      e.preventDefault();
+      const username=document.getElementById('cp-username').value.trim(); const oldp=document.getElementById('cp-old').value; const newp=document.getElementById('cp-new').value; const conf=document.getElementById('cp-confirm').value;
+      if(newp!==conf){showToast('Konfirmasi password baru tidak sama.','error');return;}
+      gasJSONP('changePassword',{username:username,oldPassword:oldp,newPassword:newp,token:localStorage.getItem('edu_portal_token')||''},20000).then(r=>{
+        if(r.status!=='success') throw new Error(r.message||'Gagal mengganti password.');
+        closeModal('modal-change-password'); document.getElementById('cp-old').value=''; document.getElementById('cp-new').value=''; document.getElementById('cp-confirm').value=''; showToast('Password berhasil diganti.','success');
+      }).catch(err=>showToast(err.message,'error'));
+    }
+    function handleAddUser(e){
+      e.preventDefault();
+      const username=document.getElementById('au-username').value.trim(); const pass=document.getElementById('au-password').value; const conf=document.getElementById('au-confirm').value;
+      if(pass!==conf){showToast('Konfirmasi password tidak sama.','error');return;}
+      gasJSONP('addUser',{token:localStorage.getItem('edu_portal_token')||'',username:username,password:pass,role:'admin'},20000).then(r=>{
+        if(r.status!=='success') throw new Error(r.message||'Gagal menambah admin.');
+        closeModal('modal-add-user'); showToast('Admin baru berhasil ditambahkan.','success'); if(document.getElementById('modal-users').classList.contains('active')) loadUsers();
+      }).catch(err=>showToast(err.message,'error'));
+    }
+    function openUsersModal(){
+      if(!isAdminLoggedIn){openLoginModal();return;} document.getElementById('modal-users').classList.add('active'); loadUsers();
+    }
+    function loadUsers(){
+      gasJSONP('getUsers',{token:localStorage.getItem('edu_portal_token')||''},20000).then(r=>{
+        if(r.status!=='success') throw new Error(r.message||'Gagal membaca admin.');
+        const tb=document.getElementById('users-tbody'); tb.innerHTML='';
+        (r.users||[]).forEach(u=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td><strong>${escapeHtml(u.username)}</strong></td><td>${escapeHtml(u.role)}</td><td>${u.active?'Aktif':'Nonaktif'}</td><td><button class="btn btn-outline btn-sm" onclick="toggleUser('${encodeURIComponent(u.username)}',${!u.active})">${u.active?'Nonaktifkan':'Aktifkan'}</button> <button class="btn btn-danger btn-sm" onclick="removeUser('${encodeURIComponent(u.username)}')"><i class="fa-solid fa-trash-can"></i></button></td>`; tb.appendChild(tr); });
+      }).catch(err=>showToast(err.message,'error'));
+    }
+    function toggleUser(username,active){gasJSONP('setUserActive',{token:localStorage.getItem('edu_portal_token')||'',username:decodeURIComponent(username),active:String(active)},20000).then(r=>{if(r.status!=='success')throw new Error(r.message);loadUsers();showToast('Status admin diperbarui.','success')}).catch(e=>showToast(e.message,'error'))}
+    function removeUser(username){const u=decodeURIComponent(username); if(!confirm('Hapus admin '+u+'?'))return; gasJSONP('deleteUser',{token:localStorage.getItem('edu_portal_token')||'',username:u},20000).then(r=>{if(r.status!=='success')throw new Error(r.message);loadUsers();showToast('Admin dihapus.','success')}).catch(e=>showToast(e.message,'error'))}
+    function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
+
+    document.addEventListener('DOMContentLoaded',()=>{initIconPicker();});
 
     // SYSTEM TOAST NOTIFIKASI
     function showToast(message, type = "info") {
