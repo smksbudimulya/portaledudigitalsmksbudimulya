@@ -1079,7 +1079,7 @@
        KONFIGURASI DEPLOYMENT & SAKLAR UTAMA
        ========================================================================== */
     const IS_PREVIEW = false; // MODE PRODUKSI - GitHub Pages
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxezjWXIgpJTrhwMms-5KY695fUTrsy0VcEncoL2d712BpbAupgIe9exBWRKg0ox9N1Fg/exec"; // PASTE URL WEB APP GAS DI SINI
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxBoQ7rIXPka3oiz3WFwAUBjTh0cQX5WVzKGdWknZxtikEHedLudaFXfQFtX0vNt2U7Aw/exec"; // PASTE URL WEB APP GAS DI SINI
 
     /* ==========================================================================
        DATA DUMMY UNTUK PREVIEW MODE
@@ -1185,23 +1185,70 @@
         }
     });
 
-    // AMBIL DATA DARI BACKEND GAS
+    // AMBIL DATA DARI BACKEND GAS TANPA CORS FETCH
+    // GitHub Pages -> Apps Script menggunakan JSONP untuk request GET.
+    function gasJSONP(action, params = {}, timeoutMs = 20000) {
+        return new Promise((resolve, reject) => {
+            const callbackName = "eduGasCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+            const script = document.createElement("script");
+            let finished = false;
+
+            const cleanup = () => {
+                if (finished) return;
+                finished = true;
+                clearTimeout(timer);
+                script.remove();
+                try { delete window[callbackName]; } catch (_) {}
+            };
+
+            const timer = setTimeout(() => {
+                cleanup();
+                reject(new Error("Apps Script tidak merespons. Periksa deployment Web App dan akses Anyone."));
+            }, timeoutMs);
+
+            window[callbackName] = (data) => {
+                cleanup();
+                resolve(data);
+            };
+
+            script.onerror = () => {
+                cleanup();
+                reject(new Error("Gagal menghubungi Apps Script. Pastikan URL /exec benar dan Web App dapat diakses Anyone."));
+            };
+
+            const query = new URLSearchParams();
+            query.set("action", action);
+            query.set("callback", callbackName);
+
+            Object.keys(params || {}).forEach(key => {
+                const value = params[key];
+                if (value !== undefined && value !== null) {
+                    query.set(key, typeof value === "object" ? JSON.stringify(value) : String(value));
+                }
+            });
+
+            script.src = GAS_URL + "?" + query.toString();
+            document.body.appendChild(script);
+        });
+    }
+
     function fetchInitialDataFromGAS() {
         showToast("Mengambil data dari server...", "info");
-        fetch(`${GAS_URL}?action=getInitialData`)
-            .then(res => res.json())
+
+        gasJSONP("getInitialData")
             .then(response => {
-                if(response.status === "success") {
-                    appsState = response.apps;
-                    initApp(response.settings, appsState);
-                    showToast("Data berhasil dimuat!", "success");
+                if (response && response.status === "success") {
+                    appsState = Array.isArray(response.apps) ? response.apps : [];
+                    initApp(response.settings || {}, appsState);
+                    showToast("Data Spreadsheet berhasil dimuat!", "success");
                 } else {
-                    showToast("Gagal memuat data dari spreadsheet", "error");
+                    throw new Error((response && response.message) || "Data Spreadsheet tidak dapat dibaca.");
                 }
             })
             .catch(err => {
-                console.error(err);
-                showToast("Koneksi Apps Script gagal. Menampilkan data cadangan.", "error");
+                console.error("Initial data:", err);
+                showToast(err.message || "Koneksi Apps Script gagal.", "error");
+                // Tetap render halaman, tetapi tidak menyamarkan error sebagai database aktif.
                 initApp(DUMMY_SETTINGS, appsState);
             });
     }
@@ -1315,23 +1362,10 @@
     }
 
     function loginViaGetJSONP(username, password) {
-        return new Promise((resolve, reject) => {
-            const callbackName = "eduLoginCallback_" + Date.now() + "_" + Math.floor(Math.random()*10000);
-            const script = document.createElement("script");
-            const timer = setTimeout(() => {
-                cleanup();
-                reject(new Error("Server login tidak merespons. Pastikan Apps Script sudah dideploy sebagai Web App dan aksesnya Anyone."));
-            }, 15000);
-            function cleanup(){ clearTimeout(timer); script.remove(); try{ delete window[callbackName]; }catch(_){} }
-            window[callbackName] = (data) => { cleanup(); resolve(data); };
-            script.onerror = () => { cleanup(); reject(new Error("Gagal menghubungi Apps Script.")); };
-            const q = "?action=login" +
-                "&username=" + encodeURIComponent(username) +
-                "&password=" + encodeURIComponent(password) +
-                "&callback=" + encodeURIComponent(callbackName);
-            script.src = GAS_URL + q;
-            document.body.appendChild(script);
-        });
+        return gasJSONP("login", {
+            username: username,
+            password: password
+        }, 20000);
     }
 
     async function handleLoginSubmit(e) {
@@ -1356,6 +1390,7 @@
             if (res && res.status === "success") {
                 isAdminLoggedIn = true;
                 localStorage.setItem("edu_portal_admin", "1");
+                if (res.token) localStorage.setItem("edu_portal_token", res.token);
                 updateAuthUI();
                 closeModal("modal-login");
                 document.getElementById("login-password").value = "";
@@ -1375,6 +1410,7 @@
     function handleLogout() {
         isAdminLoggedIn = false;
         localStorage.removeItem("edu_portal_admin");
+        localStorage.removeItem("edu_portal_token");
         updateAuthUI();
         closeModal("modal-admin");
         showToast("Anda telah keluar dari mode admin.", "info");
@@ -1468,17 +1504,24 @@
             showToast("Aplikasi berhasil disimpan!", "success");
         } else {
             showToast("Menyimpan ke Google Sheets...", "info");
-            fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "saveApp", app: newApp })
-            })
-            .then(res => res.json())
+            const token = localStorage.getItem("edu_portal_token") || "";
+
+            gasJSONP("saveApp", {
+                token: token,
+                app: newApp
+            }, 20000)
             .then(res => {
-                if (res.status === "success") {
-                    fetchInitialDataFromGAS();
+                if (res && res.status === "success") {
                     closeModal("modal-app-form");
+                    fetchInitialDataFromGAS();
                     showToast("Aplikasi berhasil disimpan!", "success");
+                } else {
+                    throw new Error((res && res.message) || "Gagal menyimpan aplikasi.");
                 }
+            })
+            .catch(err => {
+                console.error("Save app:", err);
+                showToast(err.message || "Gagal menyimpan aplikasi.", "error");
             });
         }
     }
@@ -1494,14 +1537,23 @@
             renderAppsGrid();
             showToast("Aplikasi berhasil dihapus", "info");
         } else {
-            fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "deleteApp", id: appId })
+            const token = localStorage.getItem("edu_portal_token") || "";
+
+            gasJSONP("deleteApp", {
+                id: appId,
+                token: token
+            }, 20000)
+            .then(res => {
+                if (res && res.status === "success") {
+                    fetchInitialDataFromGAS();
+                    showToast("Aplikasi berhasil dihapus", "info");
+                } else {
+                    throw new Error((res && res.message) || "Gagal menghapus aplikasi.");
+                }
             })
-            .then(res => res.json())
-            .then(() => {
-                fetchInitialDataFromGAS();
-                showToast("Aplikasi berhasil dihapus", "info");
+            .catch(err => {
+                console.error("Delete app:", err);
+                showToast(err.message || "Gagal menghapus aplikasi.", "error");
             });
         }
     }
