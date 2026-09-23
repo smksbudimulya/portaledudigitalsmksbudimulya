@@ -1133,6 +1133,25 @@
  </div>
 </div>
 
+<!-- MODAL EDIT ADMIN -->
+<div class="modal-overlay" id="modal-edit-user">
+ <div class="modal-card">
+  <div class="modal-header"><h3 class="modal-title"><i class="fa-solid fa-user-pen"></i> Edit Admin</h3><button class="modal-close" onclick="closeModal('modal-edit-user')">&times;</button></div>
+  <div class="modal-body">
+   <form onsubmit="handleEditUser(event)">
+    <input type="hidden" id="eu-old-username">
+    <div class="form-group"><label class="form-label">Username Admin</label><input id="eu-username" class="form-control" required pattern="[A-Za-z0-9._-]+"><small style="font-size:11px;color:var(--text-muted)">Username dapat diubah untuk admin lain. Username admin yang sedang login tetap.</small></div>
+    <div class="form-group"><label class="form-label">Password Baru <span style="font-weight:400;color:var(--text-muted)">(kosongkan jika tidak diubah)</span></label><input id="eu-password" type="password" class="form-control" minlength="6" autocomplete="new-password"></div>
+    <div class="form-group"><label class="form-label">Ulangi Password Baru</label><input id="eu-confirm" type="password" class="form-control" minlength="6" autocomplete="new-password"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-user');document.getElementById('modal-users').classList.add('active')">Batal</button>
+      <button class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
+    </div>
+   </form>
+  </div>
+ </div>
+</div>
+
 <!-- MODAL KELOLA ADMIN -->
 <div class="modal-overlay" id="modal-users">
  <div class="modal-card" style="max-width:760px">
@@ -1158,7 +1177,7 @@
        KONFIGURASI DEPLOYMENT & SAKLAR UTAMA
        ========================================================================== */
     const IS_PREVIEW = false; // MODE PRODUKSI - GitHub Pages
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbw6EJSQIKAJWG9ZFVxev0x4DxEO7Z0tHCU65_uQTGdy3Ze2n_D1Wq0_NxlUDZWWDx68ig/exec"; // PASTE URL WEB APP GAS DI SINI
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1TKACIsD8t1-5ngNdYN8o46s83iyb-ofNFtqR_oX9uxnf4LwPIxQNrGlqfS9t4EQyQ/exec"; // PASTE URL WEB APP GAS DI SINI
 
     /* ==========================================================================
        DATA DUMMY UNTUK PREVIEW MODE
@@ -1716,7 +1735,36 @@
       gasJSONP('getUsers',{token:localStorage.getItem('edu_portal_token')||''},20000).then(r=>{
         if(r.status!=='success') throw new Error(r.message||'Gagal membaca admin.');
         const tb=document.getElementById('users-tbody'); tb.innerHTML='';
-        (r.users||[]).forEach(u=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td><strong>${escapeHtml(u.username)}</strong></td><td>${escapeHtml(u.role)}</td><td>${u.active?'Aktif':'Nonaktif'}</td><td><button class="btn btn-outline btn-sm" onclick="toggleUser('${encodeURIComponent(u.username)}',${!u.active})">${u.active?'Nonaktifkan':'Aktifkan'}</button> <button class="btn btn-danger btn-sm" onclick="removeUser('${encodeURIComponent(u.username)}')"><i class="fa-solid fa-trash-can"></i></button></td>`; tb.appendChild(tr); });
+        (r.users||[]).forEach(u=>{ const isMe=String(u.username).toLowerCase()===String(localStorage.getItem('edu_portal_username')||'').toLowerCase(); const tr=document.createElement('tr'); tr.innerHTML=`<td><strong>${escapeHtml(u.username)}</strong>${isMe?' <span style=\"font-size:10px;opacity:.7\">(Anda)</span>':''}</td><td>${escapeHtml(u.role)}</td><td>${u.active?'Aktif':'Nonaktif'}</td><td><button class=\"btn btn-outline btn-sm\" onclick=\"openEditUserModal('${encodeURIComponent(u.username)}')\" title=\"Edit admin\"><i class=\"fa-solid fa-pen\"></i> Edit</button> <button class=\"btn btn-outline btn-sm\" onclick=\"toggleUser('${encodeURIComponent(u.username)}',${!u.active})\" ${isMe?'disabled title=\"Akun yang sedang login\"':''}>${u.active?'Nonaktifkan':'Aktifkan'}</button> <button class=\"btn btn-danger btn-sm\" onclick=\"removeUser('${encodeURIComponent(u.username)}')\" ${isMe?'disabled title=\"Akun yang sedang login\"':''}><i class=\"fa-solid fa-trash-can\"></i></button></td>`; tb.appendChild(tr); });
+      }).catch(err=>showToast(err.message,'error'));
+    }
+    function openEditUserModal(username){
+      const u=decodeURIComponent(username);
+      const me=String(localStorage.getItem('edu_portal_username')||'').toLowerCase();
+      document.getElementById('eu-old-username').value=u;
+      document.getElementById('eu-username').value=u;
+      document.getElementById('eu-username').disabled=(u.toLowerCase()===me);
+      document.getElementById('eu-password').value='';
+      document.getElementById('eu-confirm').value='';
+      document.getElementById('modal-users').classList.remove('active');
+      document.getElementById('modal-edit-user').classList.add('active');
+    }
+    function handleEditUser(e){
+      e.preventDefault();
+      const oldUsername=document.getElementById('eu-old-username').value.trim();
+      const me=String(localStorage.getItem('edu_portal_username')||'').toLowerCase();
+      const username=document.getElementById('eu-username').value.trim();
+      const pass=document.getElementById('eu-password').value;
+      const conf=document.getElementById('eu-confirm').value;
+      if(!username){showToast('Username wajib diisi.','error');return;}
+      if(pass && pass!==conf){showToast('Konfirmasi password baru tidak sama.','error');return;}
+      if(pass && pass.length<6){showToast('Password baru minimal 6 karakter.','error');return;}
+      gasJSONP('updateUser',{token:localStorage.getItem('edu_portal_token')||'',oldUsername:oldUsername,username:username,password:pass},20000).then(r=>{
+        if(r.status!=='success') throw new Error(r.message||'Gagal memperbarui admin.');
+        closeModal('modal-edit-user');
+        document.getElementById('modal-users').classList.add('active');
+        loadUsers();
+        showToast('Data admin berhasil diperbarui.','success');
       }).catch(err=>showToast(err.message,'error'));
     }
     function toggleUser(username,active){gasJSONP('setUserActive',{token:localStorage.getItem('edu_portal_token')||'',username:decodeURIComponent(username),active:String(active)},20000).then(r=>{if(r.status!=='success')throw new Error(r.message);loadUsers();showToast('Status admin diperbarui.','success')}).catch(e=>showToast(e.message,'error'))}
