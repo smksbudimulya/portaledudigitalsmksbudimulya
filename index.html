@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0B1914">
+  <meta name="description" content="Edu Digital Portal SMKS Budi Mulya">
+  <title>Edu Digital Portal - SMKS Budi Mulya</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #0b1914;
+      --bg-2: #0f211a;
+      --card: rgba(19,38,31,.82);
+      --card-hover: #19352a;
+      --text: #f4f7f6;
+      --muted: #9aaba4;
+      --gold: #d4a373;
+      --gold-2: #e6c29d;
+      --green: #2a5a4a;
+      --border: rgba(212,163,115,.16);
+      --shadow: 0 18px 55px rgba(0,0,0,.28);
+      --orb-a: rgba(212,163,115,.11);
+      --orb-b: rgba(42,90,74,.30);
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f7f5;
+      --bg-2: #edf3ef;
+      --card: rgba(255,255,255,.88);
+      --card-hover: #f0f6f3;
+      --text: #10251c;
+      --muted: #60726b;
+      --gold: #b88352;
+      --gold-2: #9e6b3c;
+      --green: #1e4639;
+      --border: rgba(30,70,57,.13);
+      --shadow: 0 18px 50px rgba(26,48,39,.12);
+      --orb-a: rgba(184,131,82,.10);
+      --orb-b: rgba(42,90,74,.14);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; min-height:100%; }
+    html { scroll-behavior:smooth; }
+    body {
+      min-height:100vh;
+      font-family:"Plus Jakarta Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 8% 5%, var(--orb-a), transparent 28rem),
+        radial-gradient(circle at 92% 92%, var(--orb-b), transparent 32rem),
+        var(--bg);
+      overflow-x:hidden;
+    }
+
+    button, input { font:inherit; }
+    button, a { -webkit-tap-highlight-color:transparent; }
+    a { color:inherit; text-decoration:none; }
+
+    .ambient {
+      position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:-1;
+    }
+    .ambient::before,.ambient::after {
+      content:""; position:absolute; border-radius:50%; filter:blur(90px);
+      animation:float 13s ease-in-out infinite alternate;
+    }
+    .ambient::before { width:380px;height:380px;left:-150px;top:-140px;background:var(--orb-a); }
+    .ambient::after { width:460px;height:460px;right:-190px;bottom:-180px;background:var(--orb-b);animation-delay:-6s; }
+    @keyframes float {
+      from { transform:translate(0,0) scale(1); }
+      to { transform:translate(45px,35px) scale(1.08); }
+    }
+
+    .page { width:100%; min-height:100vh; }
+    .container { width:min(1180px, calc(100% - 40px)); margin:auto; }
+
+    .navbar {
+      min-height:84px; display:flex; align-items:center; justify-content:space-between;
+      gap:24px; padding:18px 0; border-bottom:1px solid var(--border);
+    }
+    .brand { display:flex; align-items:center; gap:13px; min-width:0; }
+    .brand-logo {
+      width:54px;height:54px;border-radius:16px;object-fit:cover;
+      background:var(--green); border:1px solid var(--border); padding:4px;
+      box-shadow:0 10px 30px rgba(0,0,0,.18);
+    }
+    .brand-title { font-weight:800; letter-spacing:.5px; font-size:17px; line-height:1.15; }
+    .brand-school { margin-top:4px; font-size:12px; font-weight:700; color:var(--gold); letter-spacing:1.2px; }
+    .brand-subtitle { margin-top:3px; font-size:10px; color:var(--muted); }
+
+    .nav-actions { display:flex; align-items:center; gap:9px; }
+    .icon-btn,.btn {
+      border:1px solid var(--border); border-radius:11px; cursor:pointer;
+      transition:.2s ease; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .icon-btn {
+      width:42px;height:42px;background:var(--card);color:var(--text);
+    }
+    .icon-btn:hover { border-color:var(--gold); transform:translateY(-1px); }
+    .btn { padding:11px 16px; font-weight:700; font-size:13px; }
+    .btn-primary { background:linear-gradient(135deg,var(--gold),#a87548); color:#101914; border-color:transparent; }
+    .btn-primary:hover { transform:translateY(-2px); filter:brightness(1.05); }
+    .btn-outline { background:transparent; color:var(--text); }
+    .btn-outline:hover { border-color:var(--gold); color:var(--gold); }
+
+    .hero { text-align:center; padding:72px 0 40px; }
+    .hero-tag {
+      display:inline-flex; align-items:center; gap:8px; padding:8px 13px;
+      border:1px solid var(--border); border-radius:999px; color:var(--gold);
+      background:rgba(212,163,115,.06); font-size:11px; font-weight:800; letter-spacing:.6px;
+      text-transform:uppercase;
+    }
+    .hero h1 { margin:20px auto 14px; max-width:850px; font-size:clamp(36px,6vw,64px); line-height:1.04; letter-spacing:-2px; }
+    .hero p { max-width:760px; margin:0 auto; color:var(--muted); line-height:1.8; font-size:15px; }
+
+    .search-wrap { max-width:760px; margin:30px auto 18px; position:relative; }
+    .search-wrap i { position:absolute; left:18px; top:50%; transform:translateY(-50%); color:var(--muted); }
+    .search {
+      width:100%; height:56px; padding:0 18px 0 48px; border-radius:16px;
+      border:1px solid var(--border); outline:none; color:var(--text); background:var(--card);
+      box-shadow:var(--shadow);
+    }
+    .search:focus { border-color:var(--gold); box-shadow:0 0 0 4px rgba(212,163,115,.08); }
+    .search::placeholder { color:var(--muted); }
+
+    .categories {
+      display:flex; gap:8px; overflow:auto; padding:3px 2px 12px;
+      scrollbar-width:thin; justify-content:center;
+    }
+    .cat {
+      flex:0 0 auto; border:1px solid var(--border); background:var(--card);
+      color:var(--muted); padding:9px 14px; border-radius:999px; cursor:pointer;
+      font-size:12px; font-weight:700; transition:.2s ease;
+    }
+    .cat:hover { color:var(--text); border-color:var(--gold); }
+    .cat.active { background:var(--gold); color:#111b16; border-color:var(--gold); }
+
+    .status {
+      min-height:24px; text-align:center; color:var(--muted); font-size:12px; margin:8px 0 18px;
+    }
+    .status.error { color:#e99b8c; }
+    .status.ok { color:#8ec8ad; }
+
+    .apps-grid {
+      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; padding:12px 0 40px;
+    }
+    .app-card {
+      display:flex; flex-direction:column; justify-content:space-between; min-height:235px;
+      padding:22px; border:1px solid var(--border); border-radius:20px;
+      background:var(--card); box-shadow:0 12px 35px rgba(0,0,0,.10);
+      transition:transform .22s ease,border-color .22s ease,background .22s ease;
+      animation:cardIn .35s ease both;
+    }
+    .app-card:hover { transform:translateY(-5px); border-color:rgba(212,163,115,.42); background:var(--card-hover); }
+    @keyframes cardIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+    .app-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .app-icon {
+      width:50px;height:50px;border-radius:14px; display:grid;place-items:center;
+      background:rgba(212,163,115,.10); color:var(--gold); font-size:20px; border:1px solid var(--border);
+    }
+    .badge {
+      font-size:10px; font-weight:800; color:var(--gold); border:1px solid var(--border);
+      background:rgba(212,163,115,.06); border-radius:999px; padding:6px 9px;
+      white-space:nowrap;
+    }
+    .app-title { font-size:17px; margin:20px 0 8px; line-height:1.35; }
+    .app-desc { color:var(--muted); font-size:12px; line-height:1.75; margin:0 0 20px; }
+    .app-footer { margin-top:auto; }
+    .app-link { width:100%; }
+
+    .empty {
+      grid-column:1/-1; text-align:center; padding:65px 20px; color:var(--muted);
+      border:1px dashed var(--border); border-radius:20px;
+    }
+    .empty i { font-size:34px; color:var(--gold); margin-bottom:12px; }
+
+    .footer {
+      border-top:1px solid var(--border); padding:28px 0 34px; text-align:center;
+      color:var(--muted); font-size:11px; line-height:1.7;
+    }
+
+    .loader {
+      position:fixed; inset:0; display:grid; place-items:center; z-index:50;
+      background:var(--bg); transition:opacity .35s ease,visibility .35s ease;
+    }
+    .loader.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+    .loader-box { text-align:center; }
+    .spinner {
+      width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--gold);
+      border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 14px;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    @media (max-width: 900px) {
+      .apps-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width: 680px) {
+      .container { width:min(100% - 28px,1180px); }
+      .navbar { align-items:flex-start; }
+      .brand-subtitle { display:none; }
+      .nav-actions .btn-outline { display:none; }
+      .hero { padding:48px 0 28px; }
+      .hero h1 { font-size:38px; letter-spacing:-1.3px; }
+      .hero p { font-size:13px; line-height:1.7; }
+      .apps-grid { grid-template-columns:1fr; gap:14px; }
+      .app-card { min-height:215px; padding:19px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ambient"></div>
+
+  <div id="loader" class="loader">
+    <div class="loader-box">
+      <div class="spinner"></div>
+      <strong>Memuat Edu Digital Portal...</strong>
+      <div style="color:var(--muted);font-size:11px;margin-top:6px">Mengambil data dari Google Spreadsheet</div>
+    </div>
+  </div>
+
+  <main class="page">
+    <div class="container">
+      <nav class="navbar">
+        <a class="brand" href="./" aria-label="Edu Digital Portal">
+          <img id="logo" class="brand-logo" src="https://res.cloudinary.com/bwmgqxug/image/upload/v1789022731/logo95_-_Copy.png" alt="Logo SMKS Budi Mulya">
+          <div>
+            <div id="portal-title" class="brand-title">EDU DIGITAL PORTAL</div>
+            <div id="portal-school" class="brand-school">SMKS BUDI MULYA</div>
+            <div id="portal-subtitle" class="brand-subtitle">Sistem Akses Terpadu Layanan Sekolah</div>
+          </div>
+        </a>
+
+        <div class="nav-actions">
+          <button id="theme-btn" class="icon-btn" type="button" title="Ubah tema" aria-label="Ubah tema">
+            <i id="theme-icon" class="fa-solid fa-moon"></i>
+          </button>
+        </div>
+      </nav>
+
+      <section class="hero">
+        <div class="hero-tag"><i class="fa-solid fa-sparkles"></i> Akses Cepat & Easy Navigation</div>
+        <h1 id="hero-title">Aplikasi & Layanan Sekolah</h1>
+        <p id="hero-desc">Pilih dan buka aplikasi pendukung kegiatan akademik, administrasi, dan pembelajaran digital SMKS Budi Mulya secara praktis dalam satu pintu.</p>
+
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="search" class="search" type="search" placeholder="Cari aplikasi, layanan, atau kata kunci..." autocomplete="off">
+        </div>
+
+        <div id="categories" class="categories"></div>
+        <div id="status" class="status">Menghubungkan ke database...</div>
+      </section>
+
+      <section id="apps" class="apps-grid" aria-live="polite"></section>
+
+      <footer class="footer">
+        <div id="footer-text">© 2026 SMKS Budi Mulya - Edu Digital Portal.</div>
+        <div style="margin-top:5px">Landing page • GitHub Pages • Data dari Google Spreadsheet</div>
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    /*
+      ============================================================
+      KONFIGURASI
+      ============================================================
+      Setelah Apps Script selesai di-deploy sebagai Web App,
+      tempel URL /exec di bawah ini.
+    */
+    const GAS_URL = "PASTE_GAS_WEB_APP_URL_HERE";
+
+    const FALLBACK_SETTINGS = {
+      portal_title: "EDU DIGITAL PORTAL",
+      portal_school: "SMKS BUDI MULYA",
+      portal_subtitle: "Sistem Akses Terpadu Layanan Sekolah",
+      hero_title: "Aplikasi & Layanan Sekolah",
+      hero_desc: "Pilih dan buka aplikasi pendukung kegiatan akademik, administrasi, dan pembelajaran digital SMKS Budi Mulya secara praktis dalam satu pintu.",
+      footer_text: "© 2026 SMKS Budi Mulya - Edu Digital Portal."
+    };
+
+    let apps = [];
+    let currentCategory = "Semua";
+
+    const $ = (id) => document.getElementById(id);
+
+    function initTheme() {
+      const saved = localStorage.getItem("edu_portal_theme") || "dark";
+      applyTheme(saved);
+      $("theme-btn").addEventListener("click", () => {
+        const current = document.documentElement.dataset.theme || "dark";
+        applyTheme(current === "dark" ? "light" : "dark");
+      });
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      localStorage.setItem("edu_portal_theme", theme);
+      $("theme-icon").className = theme === "dark" ? "fa-solid fa-moon" : "fa-solid fa-sun";
+      document.querySelector('meta[name="theme-color"]').setAttribute("content", theme === "dark" ? "#0B1914" : "#F4F7F5");
+    }
+
+    function setStatus(message, type="") {
+      $("status").textContent = message;
+      $("status").className = "status" + (type ? " " + type : "");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, ch => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[ch]));
+    }
+
+    function iconHtml(icon) {
+      const value = String(icon || "fa-link").trim();
+      if (value.startsWith("fa-")) return '<i class="fa-solid ' + escapeHtml(value) + '"></i>';
+      return '<span style="font-size:22px">' + escapeHtml(value) + '</span>';
+    }
+
+    function renderSettings(settings) {
+      const s = Object.assign({}, FALLBACK_SETTINGS, settings || {});
+      $("portal-title").textContent = s.portal_title || FALLBACK_SETTINGS.portal_title;
+      $("portal-school").textContent = s.portal_school || FALLBACK_SETTINGS.portal_school;
+      $("portal-subtitle").textContent = s.portal_subtitle || FALLBACK_SETTINGS.portal_subtitle;
+      $("hero-title").textContent = s.hero_title || FALLBACK_SETTINGS.hero_title;
+      $("hero-desc").textContent = s.hero_desc || FALLBACK_SETTINGS.hero_desc;
+      $("footer-text").textContent = s.footer_text || FALLBACK_SETTINGS.footer_text;
+      if (s.logo_url) $("logo").src = s.logo_url;
+      document.title = (s.portal_title || "Edu Digital Portal") + " - " + (s.portal_school || "SMKS Budi Mulya");
+    }
+
+    function renderCategories() {
+      const categories = ["Semua", ...new Set(apps.map(a => a.category).filter(Boolean))];
+      $("categories").innerHTML = categories.map(cat =>
+        '<button type="button" class="cat ' + (cat === currentCategory ? "active" : "") +
+        '" data-category="' + escapeHtml(cat) + '">' + escapeHtml(cat) + '</button>'
+      ).join("");
+
+      $("categories").querySelectorAll(".cat").forEach(btn => {
+        btn.addEventListener("click", () => {
+          currentCategory = btn.dataset.category;
+          renderCategories();
+          renderApps();
+        });
+      });
+    }
+
+    function renderApps() {
+      const term = $("search").value.trim().toLowerCase();
+
+      const filtered = apps.filter(app => {
+        const categoryMatch = currentCategory === "Semua" || app.category === currentCategory;
+        const text = (app.title + " " + app.description + " " + app.category).toLowerCase();
+        return categoryMatch && text.includes(term);
+      });
+
+      if (!filtered.length) {
+        $("apps").innerHTML =
+          '<div class="empty"><i class="fa-solid fa-folder-open"></i><h3>Tidak ada aplikasi</h3><p>Coba ubah kata kunci pencarian atau kategori.</p></div>';
+        return;
+      }
+
+      $("apps").innerHTML = filtered.map((app, index) => `
+        <article class="app-card" style="animation-delay:${Math.min(index,10)*35}ms">
+          <div>
+            <div class="app-head">
+              <div class="app-icon">${iconHtml(app.icon)}</div>
+              <span class="badge">${escapeHtml(app.category || "Layanan")}</span>
+            </div>
+            <h2 class="app-title">${escapeHtml(app.title)}</h2>
+            <p class="app-desc">${escapeHtml(app.description)}</p>
+          </div>
+          <div class="app-footer">
+            <a class="btn btn-primary app-link" href="${escapeHtml(app.url)}" target="_blank" rel="noopener noreferrer">
+              Buka Aplikasi <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function finishLoading() {
+      $("loader").classList.add("hidden");
+    }
+
+    function loadFallback() {
+      apps = [
+        {title:"Raport Digital (RDM)",category:"Akademik",description:"Aplikasi pengisian dan pencetakan nilai hasil belajar siswa.",url:"#",icon:"fa-graduation-cap"},
+        {title:"CBT Ujian Online",category:"Akademik",description:"Sistem ujian dan penilaian berbasis komputer.",url:"#",icon:"fa-laptop-code"},
+        {title:"E-Perpustakaan",category:"Perpustakaan",description:"Katalog dan layanan perpustakaan sekolah.",url:"#",icon:"fa-book-open-reader"}
+      ];
+      renderSettings(FALLBACK_SETTINGS);
+      renderCategories();
+      renderApps();
+      setStatus("Mode cadangan aktif. Hubungkan GAS agar data Spreadsheet tampil.", "error");
+      finishLoading();
+    }
+
+    /*
+      JSONP dipakai khusus untuk landing page READ-ONLY.
+      Keuntungannya: tidak bergantung pada CORS fetch dari GitHub Pages.
+      Endpoint hanya mengirim settings + daftar aplikasi, bukan password.
+    */
+    function loadFromGas() {
+      if (!GAS_URL || GAS_URL.includes("PASTE_GAS")) {
+        loadFallback();
+        return;
+      }
+
+      const callbackName = "__eduPortalCallback_" + Date.now();
+      const script = document.createElement("script");
+      let finished = false;
+
+      window[callbackName] = function(response) {
+        finished = true;
+        try {
+          if (!response || response.status !== "success") throw new Error("Respons backend tidak valid");
+          apps = Array.isArray(response.apps) ? response.apps : [];
+          renderSettings(response.settings || {});
+          renderCategories();
+          renderApps();
+          setStatus(apps.length + " aplikasi berhasil dimuat dari Spreadsheet.", "ok");
+        } catch (err) {
+          console.error(err);
+          loadFallback();
+        } finally {
+          cleanup();
+        }
+      };
+
+      function cleanup() {
+        clearTimeout(timer);
+        script.remove();
+        try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+        finishLoading();
+      }
+
+      const timer = setTimeout(() => {
+        if (!finished) {
+          console.error("Timeout koneksi Apps Script");
+          loadFallback();
+          cleanup();
+        }
+      }, 12000);
+
+      script.onerror = function() {
+        if (!finished) {
+          loadFallback();
+          cleanup();
+        }
+      };
+
+      script.src = GAS_URL + (GAS_URL.includes("?") ? "&" : "?") +
+                   "action=getInitialData&prefix=" + encodeURIComponent(callbackName) +
+                   "&t=" + Date.now();
+      document.head.appendChild(script);
+    }
+
+    $("search").addEventListener("input", renderApps);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      loadFromGas();
+    });
+  </script>
+</body>
+</html>
