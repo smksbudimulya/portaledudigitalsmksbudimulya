@@ -1,2 +1,2 @@
-# portaledudigitalsmksbudimulya
+# Portaledudigitalsmksbudimulya
 Portal SMK Budi Mulya
