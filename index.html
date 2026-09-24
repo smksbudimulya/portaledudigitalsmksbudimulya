@@ -1669,8 +1669,25 @@
     function renderIconPicker(){
       const fa=document.getElementById('fontawesome-icon-grid'), em=document.getElementById('emoji-icon-grid');
       if(!fa||!em) return;
-      fa.innerHTML=FONT_AWESOME_ICONS.map(x=>`<button type="button" class="icon-choice" data-icon="${x}" onclick="selectAppIcon('${x}')"><i class="fa-solid ${x}"></i><small>${x}</small></button>`).join('');
-      em.innerHTML=EMOJIS.map(x=>`<button type="button" class="icon-choice" data-icon="${x}" onclick="selectAppIcon(${JSON.stringify(x)})"><span class="emoji">${x}</span></button>`).join('');
+      fa.innerHTML=FONT_AWESOME_ICONS.map(x=>`<button type="button" class="icon-choice" data-icon="${x}"><i class="fa-solid ${x}"></i><small>${x}</small></button>`).join('');
+      em.innerHTML=EMOJIS.map(x=>`<button type="button" class="icon-choice" data-icon="${x.replace(/"/g,'&quot;')}"><span class="emoji">${x}</span></button>`).join('');
+
+      // Pasang event listener setelah tombol dibuat.
+      // Ini menghindari masalah inline onclick pada karakter emoji/Unicode.
+      fa.querySelectorAll('.icon-choice').forEach(btn=>{
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          selectAppIcon(this.getAttribute('data-icon'));
+        });
+      });
+      em.querySelectorAll('.icon-choice').forEach(btn=>{
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          e.stopPropagation();
+          selectAppIcon(this.getAttribute('data-icon'));
+        });
+      });
     }
     function switchIconPicker(type){
       document.getElementById('fontawesome-icon-grid').style.display=type==='fa'?'grid':'none';
